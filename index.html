@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>トップページ | スグリコ</title>
+</head>
+<body>
+    <h1>スグリコへようこそ！</h1>
+
+    <p>こんにちは、<span sec:authentication="name"></span> さん</p>
+
+    <!-- ログアウトフォーム -->
+    <form th:action="@{/logout}" method="post" style="display: inline;">
+        <button type="submit">ログアウト</button>
+    </form>
+
+    <hr>
+
+    <h2>新しいログを記録する</h2>
+    <form th:action="@{/logs}" th:object="${newLog}" method="post">
+        <div>
+            <textarea th:field="*{content}" rows="4" cols="50" placeholder="今日の出来事を記録しよう" required></textarea>
+        </div>
+        <button type="submit">記録する</button>
+    </form>
+
+    <hr>
+
+    <h2>あなたのログ一覧</h2>
+    <div th:if="${#lists.isEmpty(logs)}">
+        <p>まだ記録がありません。</p>
+    </div>
+    <div th:unless="${#lists.isEmpty(logs)}">
+        <ul th:each="log : ${logs}">
+            <li>
+                <strong th:text="${#temporals.format(log.createdAt, 'yyyy/MM/dd HH:mm')}"></strong>:
+                <span th:text="${log.content}"></span>
+            </li>
+        </ul>
+    </div>
+
+</body>
+</html>
