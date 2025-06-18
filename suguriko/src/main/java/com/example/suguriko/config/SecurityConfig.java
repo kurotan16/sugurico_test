@@ -18,8 +18,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 // CSS, JS, 画像などの静的リソースは誰でもアクセス可能
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-                // 新規登録ページとログインページは誰でもアクセス可能
-                .requestMatchers("/register", "/login").permitAll()
+                // 新規登録ページとログインページとパスワードの再設定は誰でもアクセス可能
+                .requestMatchers("/register", "/login", "/forgot-password", "/reset-password").permitAll()
                 // その他のリクエストはすべて認証が必要
                 .anyRequest().authenticated()
             )
