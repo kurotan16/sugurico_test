@@ -70,4 +70,47 @@ public class HomeController {
         // 処理が終わったらトップページにリダイレクト
         return "redirect:/";
     }
+
+    @GetMapping("/logs/{id}/edit")
+    public String showEditForm(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        // ログインユーザー情報を取得
+        User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+        // 編集対象のログを取得
+        Optional<Log> logOptional = logRepository.findById(id);
+
+        // ログが存在し、かつ自分が所有者であるかチェック
+        if (logOptional.isPresent() && logOptional.get().getUser().getId().equals(currentUser.getId())) {
+            model.addAttribute("log", logOptional.get());
+            return "edit-log"; // templates/edit-log.html を表示
+        }
+
+        // ログが存在しないか、他人のログの場合はトップページにリダイレクト
+        return "redirect:/";
+    }
+
+    /**
+     * ログを更新する
+     */
+    @PostMapping("/logs/{id}/edit")
+    public String updateLog(@PathVariable Long id,
+                            @ModelAttribute Log formLog, // フォームの入力内容を受け取る
+                            @AuthenticationPrincipal UserDetails userDetails) {
+
+        // ログインユーザー情報を取得
+        User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+        // 更新対象のログをDBから取得
+        Optional<Log> logOptional = logRepository.findById(id);
+
+        // ログが存在し、かつ自分が所有者であるかチェック
+        if (logOptional.isPresent() && logOptional.get().getUser().getId().equals(currentUser.getId())) {
+            // 変更を適用する
+            Log dbLog = logOptional.get();
+            dbLog.setTitle(formLog.getTitle());
+            dbLog.setContent(formLog.getContent());
+            logRepository.save(dbLog); // 変更を保存
+        }
+
+        // 処理が終わったらトップページにリダイレクト
+        return "redirect:/";
+    }
 }
