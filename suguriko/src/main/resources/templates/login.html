@@ -6,6 +6,10 @@
 </head>
 <body>
     <h1>ログイン</h1>
+
+    <!-- 登録成功メッセージ -->
+    <div th:if="${successMessage}" th:text="${successMessage}" style="color: green;"></div>
+    
     <!-- ログイン失敗時のエラーメッセージ -->
     <div th:if="${param.error}" style="color: red;">
         ユーザー名またはパスワードが違います。

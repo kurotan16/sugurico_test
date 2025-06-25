@@ -6,6 +6,10 @@
 </head>
 <body>
     <h1>新規登録</h1>
+
+    <!-- エラーメッセージ表示 -->
+    <div th:if="${errorMessage}" th:text="${errorMessage}" style="color: red;"></div>
+    
     <form th:action="@{/register}" th:object="${user}" method="post">
         <div>
             <label for="username">ユーザー名:</label>
