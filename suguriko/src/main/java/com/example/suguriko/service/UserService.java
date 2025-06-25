@@ -113,4 +113,30 @@ public class UserService {
         user.setResetPasswordTokenExpiry(null); // 有効期限を無効化
         userRepository.save(user);
     }
+
+    @Transactional
+    public void changePassword(String username, String currentPassword, String newPassword, String confirmPassword) {
+        // 1. ユーザー情報を取得
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalStateException("ユーザーが見つかりません。"));
+
+        // 2. 現在のパスワードが正しいかチェック
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("現在のパスワードが正しくありません。");
+        }
+
+        // 3. 新しいパスワードと確認用パスワードが一致するかチェック
+        if (!newPassword.equals(confirmPassword)) {
+            throw new IllegalArgumentException("新しいパスワードと確認用パスワードが一致しません。");
+        }
+
+        // 任意: パスワードの強度チェックを追加することも可能
+        // if (newPassword.length() < 8) {
+        //     throw new IllegalArgumentException("パスワードは8文字以上で設定してください。");
+        // }
+        
+        // 4. 新しいパスワードをハッシュ化して保存
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }
