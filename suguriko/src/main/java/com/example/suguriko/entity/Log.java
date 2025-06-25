@@ -13,6 +13,9 @@ public class Log {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 255) // タイトルは必須にしない場合は nullable=false は不要
+    private String title;
+
     @Column(nullable = false, length = 1000) // 1000文字まで
     private String content;
 

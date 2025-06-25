@@ -20,8 +20,16 @@
 
     <h2>新しいログを記録する</h2>
     <form th:action="@{/logs}" th:object="${newLog}" method="post">
+        <!-- ★★★ タイトル入力欄を追加 ★★★ -->
+        <div style="margin-bottom: 10px;">
+            <label for="title">タイトル:</label><br>
+            <input type="text" th:field="*{title}" id="title" size="50" placeholder="今日のハイライトは？">
+        </div>
+        
+        <!-- ★★★ 本文入力欄 (labelを追加) ★★★ -->
         <div>
-            <textarea th:field="*{content}" rows="4" cols="50" placeholder="今日の出来事を記録しよう" required></textarea>
+            <label for="content">本文:</label><br>
+            <textarea th:field="*{content}" id="content" rows="4" cols="50" placeholder="今日の出来事を記録しよう" required></textarea>
         </div>
         <button type="submit">記録する</button>
     </form>
@@ -35,8 +43,9 @@
     <div th:unless="${#lists.isEmpty(logs)}">
         <ul th:each="log : ${logs}">
             <li>
-                <strong th:text="${#temporals.format(log.createdAt, 'yyyy/MM/dd HH:mm')}"></strong>:
-                <span th:text="${log.content}"></span>
+                <strong th:text="${#temporals.format(log.createdAt, 'yyyy/MM/dd HH:mm')}"></strong> - 
+                <strong th:text="${log.title}">タイトル</strong><br>
+                <span th:text="${log.content}" style="padding-left: 15px;">本文</span>
             </li>
         </ul>
     </div>
