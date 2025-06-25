@@ -11,8 +11,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-
 import java.util.List;
+import org.springframework.web.bind.annotation.PathVariable; // ★★★ import を追加 ★★★
+import java.util.Optional; // ★★★ import を追加 ★★★
 
 @Controller
 public class HomeController {
@@ -48,5 +49,25 @@ public class HomeController {
         logRepository.save(newLog);
 
         return "redirect:/"; // トップページにリダイレクト
+    }
+
+    @PostMapping("/logs/{id}/delete")
+    public String deleteLog(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        // 現在ログインしているユーザーの情報を取得
+        User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+        
+        // 削除対象のログをIDで検索
+        Optional<Log> logOptional = logRepository.findById(id);
+
+        // ログが存在し、かつそのログの所有者が現在のユーザーである場合のみ削除
+        if (logOptional.isPresent()) {
+            Log log = logOptional.get();
+            if (log.getUser().getId().equals(currentUser.getId())) {
+                logRepository.deleteById(id);
+            }
+        }
+        
+        // 処理が終わったらトップページにリダイレクト
+        return "redirect:/";
     }
 }

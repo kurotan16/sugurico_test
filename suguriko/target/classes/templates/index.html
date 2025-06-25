@@ -44,7 +44,12 @@
         <ul th:each="log : ${logs}">
             <li>
                 <strong th:text="${#temporals.format(log.createdAt, 'yyyy/MM/dd HH:mm')}"></strong> - 
-                <strong th:text="${log.title}">タイトル</strong><br>
+                <strong th:text="${log.title}">タイトル</strong>
+                <form th:action="@{/logs/{id}/delete(id=${log.id})}" method="post" style="display: inline; margin-left: 10px;">
+                    <button type="submit" onclick="return confirm('本当にこのログを削除しますか？');">削除</button>
+                </form>
+                
+                <br>
                 <span th:text="${log.content}" style="padding-left: 15px;">本文</span>
             </li>
         </ul>
