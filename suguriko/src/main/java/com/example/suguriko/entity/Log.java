@@ -19,6 +19,9 @@ public class Log {
     @Column(nullable = false, length = 1000) // 1000文字まで
     private String content;
 
+    @Column(name = "image_url", length = 2048) // URLは長くなる可能性があるので長さを指定
+    private String imageUrl;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

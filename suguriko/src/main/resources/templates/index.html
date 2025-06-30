@@ -19,7 +19,7 @@
     <hr>
 
     <h2>新しいログを記録する</h2>
-    <form th:action="@{/logs}" th:object="${newLog}" method="post">
+    <form th:action="@{/logs}" th:object="${newLog}" method="post" enctype="multipart/form-data">
         <!-- ★★★ タイトル入力欄を追加 ★★★ -->
         <div style="margin-bottom: 10px;">
             <label for="title">タイトル:</label><br>
@@ -30,6 +30,12 @@
         <div>
             <label for="content">本文:</label><br>
             <textarea th:field="*{content}" id="content" rows="4" cols="50" placeholder="今日の出来事を記録しよう" required></textarea>
+        </div>
+
+        <!-- ★★★ 画像追加欄 ★★★ -->
+        <div style="margin-top: 10px;">
+            <label for="imageFile">画像ファイル:</label><br>
+            <input type="file" name="imageFile" id="imageFile" accept="image/*">
         </div>
         <button type="submit">記録する</button>
     </form>
@@ -52,6 +58,10 @@
                 </form>
                 
                 <br>
+                <!-- imageUrlが存在する場合のみ画像を表示 -->
+                <div th:if="${log.imageUrl}" style="padding-left: 15px; margin-top: 5px;">
+                    <img th:src="${log.imageUrl}" alt="ログの画像" style="max-width: 300px; max-height: 300px;">
+                </div>
                 <span th:text="${log.content}" style="padding-left: 15px;">本文</span>
             </li>
         </ul>

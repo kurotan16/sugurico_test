@@ -11,19 +11,27 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
 import java.util.List;
-import org.springframework.web.bind.annotation.PathVariable; // ★★★ import を追加 ★★★
-import java.util.Optional; // ★★★ import を追加 ★★★
+import org.springframework.web.bind.annotation.PathVariable;
+import java.util.Optional;
+import com.example.suguriko.service.StorageService;
+import java.io.IOException;
 
 @Controller
 public class HomeController {
 
     private final UserRepository userRepository;
     private final LogRepository logRepository;
+    private final StorageService storageService;
 
-    public HomeController(UserRepository userRepository, LogRepository logRepository) {
+    public HomeController(UserRepository userRepository, LogRepository logRepository, StorageService storageService) {
         this.userRepository = userRepository;
         this.logRepository = logRepository;
+        this.storageService = storageService;
     }
 
     @GetMapping("/")
@@ -40,15 +48,19 @@ public class HomeController {
     }
 
     @PostMapping("/logs")
-    public String addLog(@ModelAttribute Log newLog, @AuthenticationPrincipal UserDetails userDetails) {
-        // ログイン中のユーザー情報を取得
+    public String addLog(@ModelAttribute Log newLog,
+                        @RequestParam("imageFile") MultipartFile imageFile,
+                        @AuthenticationPrincipal UserDetails userDetails) throws IOException {
+
+        String imageUrl = storageService.uploadFile(imageFile, "logs-images");
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         
         // 新しいログにユーザーをセットして保存
         newLog.setUser(user);
+        newLog.setImageUrl(imageUrl);
         logRepository.save(newLog);
 
-        return "redirect:/"; // トップページにリダイレクト
+        return "redirect:/";
     }
 
     @PostMapping("/logs/{id}/delete")
