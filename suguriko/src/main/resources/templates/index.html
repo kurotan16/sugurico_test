@@ -34,8 +34,9 @@
 
         <!-- ★★★ 画像追加欄 ★★★ -->
         <div style="margin-top: 10px;">
-            <label for="imageFile">画像ファイル:</label><br>
-            <input type="file" name="imageFile" id="imageFile" accept="image/*">
+            <label for="imageFiles">画像ファイル (複数選択可):</label><br> 
+            <!-- ★★★ multiple属性を追加し、nameを複数形に変更 ★★★ -->
+            <input type="file" name="imageFiles" id="imageFiles" accept="image/*" multiple>
         </div>
         <button type="submit">記録する</button>
     </form>
@@ -58,9 +59,14 @@
                 </form>
                 
                 <br>
-                <!-- imageUrlが存在する場合のみ画像を表示 -->
-                <div th:if="${log.imageUrl}" style="padding-left: 15px; margin-top: 5px;">
-                    <img th:src="${log.imageUrl}" alt="ログの画像" style="max-width: 300px; max-height: 300px;">
+                <!-- log.images に画像があればループして表示 -->
+                <div th:if="${not #lists.isEmpty(log.images)}" style="padding-left: 15px; margin-top: 5px;">
+                    <!-- 画像を横に並べるためのコンテナ -->
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <div th:each="image : ${log.images}">
+                            <img th:src="${image.imageUrl}" alt="ログの画像" style="max-width: 150px; max-height: 150px; object-fit: cover;">
+                        </div>
+                    </div>
                 </div>
                 <span th:text="${log.content}" style="padding-left: 15px;">本文</span>
             </li>

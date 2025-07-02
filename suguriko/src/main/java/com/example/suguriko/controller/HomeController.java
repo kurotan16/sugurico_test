@@ -13,13 +13,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-// import org.springframework.web.reactive.function.client.WebClientResponseException;
-
 import java.util.List;
 import org.springframework.web.bind.annotation.PathVariable;
 import java.util.Optional;
 import com.example.suguriko.service.StorageService;
-import java.io.IOException;
+import com.example.suguriko.entity.LogImage;
 
 @Controller
 public class HomeController {
@@ -49,18 +47,26 @@ public class HomeController {
 
     @PostMapping("/logs")
     public String addLog(@ModelAttribute Log newLog,
-                        @RequestParam("imageFile") MultipartFile imageFile,
-                        @AuthenticationPrincipal UserDetails userDetails) throws IOException {
-
-        String imageUrl = storageService.uploadFile(imageFile, "logs-images");
-        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+                         @RequestParam("imageFiles") MultipartFile[] imageFiles, // 配列で受け取る
+                         @AuthenticationPrincipal UserDetails userDetails) {
         
-        // 新しいログにユーザーをセットして保存
+        // 1. 複数の画像ファイルを一括でアップロードし、URLのリストを取得
+        List<String> imageUrls = storageService.uploadFiles(imageFiles, "logs-images");
+
+        // 2. 取得した各URLからLogImageオブジェクトを作成し、newLogに追加
+        for (String imageUrl : imageUrls) {
+            LogImage logImage = new LogImage(imageUrl);
+            newLog.addImage(logImage); // ヘルパーメソッドを使って追加
+        }
+
+        // 3. ログイン中のユーザー情報を取得し、newLogにセット
+        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         newLog.setUser(user);
-        newLog.setImageUrl(imageUrl);
+        
+        // 4. ログをDBに保存（Cascade設定により、関連するLogImageも自動で保存される）
         logRepository.save(newLog);
 
-        return "redirect:/";
+        return "redirect:/"; // トップページにリダイレクト
     }
 
     @PostMapping("/logs/{id}/delete")

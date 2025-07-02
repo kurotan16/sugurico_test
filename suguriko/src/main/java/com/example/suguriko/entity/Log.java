@@ -3,6 +3,8 @@ package com.example.suguriko.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -19,8 +21,9 @@ public class Log {
     @Column(nullable = false, length = 1000) // 1000文字まで
     private String content;
 
-    @Column(name = "image_url", length = 2048) // URLは長くなる可能性があるので長さを指定
-    private String imageUrl;
+    // 1つのLogは複数のLogImageを持つことができる (一対多)
+    @OneToMany(mappedBy = "log", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<LogImage> images = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -34,5 +37,11 @@ public class Log {
     @PrePersist
     public void onPrePersist() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    // ★★★ ヘルパーメソッドを追加 ★★★
+    public void addImage(LogImage image) {
+        images.add(image);
+        image.setLog(this);
     }
 }
