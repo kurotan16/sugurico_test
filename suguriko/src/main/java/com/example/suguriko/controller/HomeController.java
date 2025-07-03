@@ -109,9 +109,11 @@ public class HomeController {
     /**
      * ログを更新する
      */
+    // ★★★ メソッドの引数を修正 ★★★
     @PostMapping("/logs/{id}/edit")
     public String updateLog(@PathVariable Long id,
-                            @ModelAttribute Log formLog, // フォームの入力内容を受け取る
+                            @ModelAttribute Log formLog,
+                            @RequestParam("imageFiles") MultipartFile[] imageFiles, // 新しく追加
                             @AuthenticationPrincipal UserDetails userDetails) {
 
         // ログインユーザー情報を取得
@@ -121,11 +123,21 @@ public class HomeController {
 
         // ログが存在し、かつ自分が所有者であるかチェック
         if (logOptional.isPresent() && logOptional.get().getUser().getId().equals(currentUser.getId())) {
-            // 変更を適用する
             Log dbLog = logOptional.get();
+            
+            // 1. テキスト情報（タイトル・本文）を更新
             dbLog.setTitle(formLog.getTitle());
             dbLog.setContent(formLog.getContent());
-            logRepository.save(dbLog); // 変更を保存
+
+            // 2. 新しい画像をアップロードして追加
+            List<String> newImageUrls = storageService.uploadFiles(imageFiles, "logs-images");
+            for (String imageUrl : newImageUrls) {
+                LogImage newImage = new LogImage(imageUrl);
+                dbLog.addImage(newImage); // ヘルパーメソッドで追加
+            }
+            
+            // 3. 変更を保存
+            logRepository.save(dbLog);
         }
 
         // 処理が終わったらトップページにリダイレクト
