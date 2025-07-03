@@ -11,5 +11,3 @@ public class SugurikoApplication {
 	}
 
 }
-
-//	福田宏樹使用:fukuda  trustno1

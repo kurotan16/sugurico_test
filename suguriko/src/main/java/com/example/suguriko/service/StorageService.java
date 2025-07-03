@@ -103,4 +103,36 @@ public class StorageService {
                 .filter(Objects::nonNull) // アップロードに失敗した(nullの)要素を除外
                 .toList(); // 結果をListとして収集
     }
+
+    /**
+     * URLからファイル名を抽出し、Supabase Storageからファイルを削除する
+     * @param imageUrl 削除するファイルの公開URL
+     * @param bucketName バケット名
+     */
+    public void deleteFile(String imageUrl, String bucketName) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return;
+        }
+
+        try {
+            // URLの最後の "/" 以降をファイル名として抽出
+            String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+            String deletePath = "object/" + bucketName + "/" + fileName;
+
+            // Supabase Storage APIにDELETEリクエストを送信
+            webClient.delete()
+                    .uri(deletePath)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + serviceKey)
+                    .retrieve()
+                    .bodyToMono(Void.class) // レスポンスボディは不要
+                    .block();
+            
+            System.out.println("Deleted file: " + fileName);
+
+        } catch (Exception e) {
+            // ファイルが存在しない場合など、エラーが起きても処理は止めない
+            System.err.println("ファイルの削除に失敗しました: " + imageUrl);
+            e.printStackTrace();
+        }
+    }
 }

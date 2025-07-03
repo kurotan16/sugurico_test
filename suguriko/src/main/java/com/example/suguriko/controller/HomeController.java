@@ -1,7 +1,10 @@
 package com.example.suguriko.controller;
 
+import com.example.suguriko.service.StorageService;
+import com.example.suguriko.entity.LogImage;
 import com.example.suguriko.entity.Log;
 import com.example.suguriko.entity.User;
+import com.example.suguriko.repository.LogImageRepository;
 import com.example.suguriko.repository.LogRepository;
 import com.example.suguriko.repository.UserRepository;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,13 +14,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
-import org.springframework.web.bind.annotation.PathVariable;
 import java.util.Optional;
-import com.example.suguriko.service.StorageService;
-import com.example.suguriko.entity.LogImage;
 
 @Controller
 public class HomeController {
@@ -25,11 +26,13 @@ public class HomeController {
     private final UserRepository userRepository;
     private final LogRepository logRepository;
     private final StorageService storageService;
+    private final LogImageRepository logImageRepository;
 
-    public HomeController(UserRepository userRepository, LogRepository logRepository, StorageService storageService) {
+    public HomeController(UserRepository userRepository, LogRepository logRepository, StorageService storageService, LogImageRepository logImageRepository) {
         this.userRepository = userRepository;
         this.logRepository = logRepository;
         this.storageService = storageService;
+        this.logImageRepository = logImageRepository;
     }
 
     @GetMapping("/")
@@ -113,7 +116,9 @@ public class HomeController {
     @PostMapping("/logs/{id}/edit")
     public String updateLog(@PathVariable Long id,
                             @ModelAttribute Log formLog,
-                            @RequestParam("imageFiles") MultipartFile[] imageFiles, // 新しく追加
+                            @RequestParam("imageFiles") MultipartFile[] imageFiles,
+                            // required=false で、チェックボックスが1つもなくてもエラーにしない
+                            @RequestParam(name = "deleteImageIds", required = false) List<Long> deleteImageIds,
                             @AuthenticationPrincipal UserDetails userDetails) {
 
         // ログインユーザー情報を取得
@@ -125,18 +130,31 @@ public class HomeController {
         if (logOptional.isPresent() && logOptional.get().getUser().getId().equals(currentUser.getId())) {
             Log dbLog = logOptional.get();
             
-            // 1. テキスト情報（タイトル・本文）を更新
+            // 1. テキスト情報を更新
             dbLog.setTitle(formLog.getTitle());
             dbLog.setContent(formLog.getContent());
 
-            // 2. 新しい画像をアップロードして追加
+            // 2. 既存の画像を削除
+            if (deleteImageIds != null && !deleteImageIds.isEmpty()) {
+                for (Long imageId : deleteImageIds) {
+                    // DBから削除対象のLogImageを検索
+                    logImageRepository.findById(imageId).ifPresent(imageToDelete -> {
+                        // Storageからファイルを削除
+                        storageService.deleteFile(imageToDelete.getImageUrl(), "logs-images");
+                        // Logエンティティのimagesリストから削除 (JPAがDBからも削除してくれる)
+                        dbLog.getImages().remove(imageToDelete);
+                    });
+                }
+            }
+
+            // 3. 新しい画像を追加
             List<String> newImageUrls = storageService.uploadFiles(imageFiles, "logs-images");
             for (String imageUrl : newImageUrls) {
                 LogImage newImage = new LogImage(imageUrl);
                 dbLog.addImage(newImage); // ヘルパーメソッドで追加
             }
             
-            // 3. 変更を保存
+            // 4. 変更をまとめて保存
             logRepository.save(dbLog);
         }
 

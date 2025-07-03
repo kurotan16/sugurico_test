@@ -25,12 +25,17 @@
             <div th:if="${#lists.isEmpty(log.images)}">
                 <p>画像はありません。</p>
             </div>
+
             <div th:unless="${#lists.isEmpty(log.images)}" style="display: flex; flex-wrap: wrap; gap: 10px;">
-                <div th:each="image : ${log.images}">
+                <!-- 各画像をコンテナで囲む -->
+                <div th:each="image : ${log.images}" style="text-align: center;">
                     <img th:src="${image.imageUrl}" alt="ログの画像" style="max-width: 150px; max-height: 150px; object-fit: cover;">
+                    <br>
+                    <!-- 削除用チェックボックス -->
+                    <input type="checkbox" name="deleteImageIds" th:value="${image.id}">
+                    <label>削除</label>
                 </div>
             </div>
-        </div>
         
         <!-- 新しい画像を追加するフォーム -->
         <div style="margin-top: 15px;">
