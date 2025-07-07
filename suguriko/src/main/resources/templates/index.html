@@ -43,7 +43,10 @@
 
     <hr>
 
-    <h2>あなたのログ一覧</h2>
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <h2>あなたの最新ログ (3件)</h2>
+        <a th:href="@{/logs/archive}">すべてのログを見る</a>
+    </div>
     <div th:if="${#lists.isEmpty(logs)}">
         <p>まだ記録がありません。</p>
     </div>

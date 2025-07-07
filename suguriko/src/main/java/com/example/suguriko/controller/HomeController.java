@@ -41,7 +41,7 @@ public class HomeController {
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         
         // そのユーザーのログ一覧を取得
-        List<Log> logs = logRepository.findByUserOrderByCreatedAtDesc(user);
+        List<Log> logs = logRepository.findFirst3ByUserOrderByCreatedAtDesc(user);
 
         model.addAttribute("logs", logs);
         model.addAttribute("newLog", new Log()); // フォーム用の空のLogオブジェクト
