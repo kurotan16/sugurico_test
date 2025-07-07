@@ -82,9 +82,16 @@ public class HomeController {
 
         // ログが存在し、かつそのログの所有者が現在のユーザーである場合のみ削除
         if (logOptional.isPresent()) {
-            Log log = logOptional.get();
-            if (log.getUser().getId().equals(currentUser.getId())) {
-                logRepository.deleteById(id);
+            Log logToDelete = logOptional.get();
+            if (logToDelete.getUser().getId().equals(currentUser.getId())) {
+                
+                // 1. 関連する画像をSupabase Storageから削除
+                for (LogImage image : logToDelete.getImages()) {
+                    storageService.deleteFile(image.getImageUrl(), "logs-images");
+                }
+                
+                // 2. ログをDBから削除 (関連するLogImageレコードもカスケード削除される)
+                logRepository.delete(logToDelete);
             }
         }
         
