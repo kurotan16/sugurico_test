@@ -2,6 +2,7 @@ package com.example.suguriko.controller;
 
 import com.example.suguriko.service.StorageService;
 import com.example.suguriko.entity.LogImage;
+import com.example.suguriko.entity.Comment;
 import com.example.suguriko.entity.Log;
 import com.example.suguriko.entity.User;
 import com.example.suguriko.repository.LogImageRepository;
@@ -70,6 +71,23 @@ public class HomeController {
         logRepository.save(newLog);
 
         return "redirect:/"; // トップページにリダイレクト
+    }
+
+    @GetMapping("/logs/{id}")
+    public String showLogDetail(@PathVariable Long id, Model model) {
+        // IDを使ってLogをデータベースから取得する
+        Optional<Log> logOptional = logRepository.findById(id);
+
+        if (logOptional.isPresent()) {
+            // Logが見つかった場合、モデルに渡して詳細ページを表示
+            model.addAttribute("log", logOptional.get());
+            // コメントフォーム用に、空のCommentオブジェクトも渡す
+            model.addAttribute("newComment", new Comment());
+            return "log-detail"; // templates/log-detail.html を表示
+        } else {
+            // Logが見つからなかった場合、トップページにリダイレクト
+            return "redirect:/";
+        }
     }
 
     @PostMapping("/logs/{id}/delete")

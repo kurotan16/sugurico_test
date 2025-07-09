@@ -25,6 +25,10 @@ public class Log {
     @OneToMany(mappedBy = "log", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<LogImage> images = new ArrayList<>();
 
+    // 1つのLogは複数のCommentを持つことができる (一対多)
+    @OneToMany(mappedBy = "log", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

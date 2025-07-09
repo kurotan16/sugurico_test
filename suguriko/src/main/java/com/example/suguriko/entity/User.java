@@ -3,6 +3,8 @@ package com.example.suguriko.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data // Getter, Setterなどを自動生成 (Lombok)
 @Entity
@@ -21,6 +23,10 @@ public class User {
 
     @Column(nullable = false, unique = true)
     private String email;
+
+    // このユーザーが投稿したコメントのリスト
+    @OneToMany(mappedBy = "user")
+    private List<Comment> comments = new ArrayList<>();
 
     private String resetPasswordToken;
     private LocalDateTime resetPasswordTokenExpiry;
