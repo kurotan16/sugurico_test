@@ -21,6 +21,9 @@ public class Log {
     @Column(nullable = false, length = 1000) // 1000文字まで
     private String content;
 
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic = false; // デフォルトは非公開
+
     // 1つのLogは複数のLogImageを持つことができる (一対多)
     @OneToMany(mappedBy = "log", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<LogImage> images = new ArrayList<>();

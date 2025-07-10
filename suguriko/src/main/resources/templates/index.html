@@ -15,27 +15,25 @@
     </form>
 
     <a th:href="@{/profile}" style="margin-left: 10px;">プロフィール編集</a>
-
+    <a th:href="@{/timeline}" style="margin-left: 10px;">みんなのログを見る</a>
     <hr>
 
     <h2>新しいログを記録する</h2>
     <form th:action="@{/logs}" th:object="${newLog}" method="post" enctype="multipart/form-data">
-        <!-- ★★★ タイトル入力欄を追加 ★★★ -->
         <div style="margin-bottom: 10px;">
             <label for="title">タイトル:</label><br>
             <input type="text" th:field="*{title}" id="title" size="50" placeholder="今日のハイライトは？">
         </div>
-        
-        <!-- ★★★ 本文入力欄 (labelを追加) ★★★ -->
         <div>
             <label for="content">本文:</label><br>
             <textarea th:field="*{content}" id="content" rows="4" cols="50" placeholder="今日の出来事を記録しよう" required></textarea>
         </div>
-
-        <!-- ★★★ 画像追加欄 ★★★ -->
+        <div style="margin-top: 10px;">
+            <input type="checkbox" th:field="*{public}" id="isPublic">
+            <label for="isPublic">このログを公開して他のユーザーにも見えるようにする</label>
+        </div>
         <div style="margin-top: 10px;">
             <label for="imageFiles">画像ファイル (複数選択可):</label><br> 
-            <!-- ★★★ multiple属性を追加し、nameを複数形に変更 ★★★ -->
             <input type="file" name="imageFiles" id="imageFiles" accept="image/*" multiple>
         </div>
         <button type="submit">記録する</button>

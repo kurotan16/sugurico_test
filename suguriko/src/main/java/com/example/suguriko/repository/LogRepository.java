@@ -5,6 +5,8 @@ import com.example.suguriko.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface LogRepository extends JpaRepository<Log, Long> {
@@ -21,4 +23,12 @@ public interface LogRepository extends JpaRepository<Log, Long> {
         @Param("user") User user,
         @Param("keyword") String keyword
     );
+
+    /**
+     * 公開されているすべてのログを作成日時の新しい順に取得する（ページネーション対応）
+     * @param isPublic 公開フラグ (trueを指定する)
+     * @param pageable ページ情報
+     * @return ログのページ
+     */
+    Page<Log> findByIsPublicOrderByCreatedAtDesc(boolean isPublic, Pageable pageable);
 }

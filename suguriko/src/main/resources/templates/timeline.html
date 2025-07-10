@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>タイムライン | スグリコ</title>
+</head>
+<body>
+    <h1>みんなのログ（タイムライン）</h1>
+    <p><a th:href="@{/}">マイページに戻る</a></p>
+    <hr>
+
+    <div th:if="${logPage.isEmpty()}">
+        <p>まだ公開されたログはありません。</p>
+    </div>
+
+    <div th:unless="${logPage.isEmpty()}">
+        <!-- ログ一覧 -->
+        <ul>
+            <li th:each="log : ${logPage.content}" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+                <!-- 投稿者と日時の情報 -->
+                <div>
+                    <strong>投稿者: <span th:text="${log.user.username}"></span></strong>
+                    <small th:text="${#temporals.format(log.createdAt, 'yyyy/MM/dd HH:mm')}" style="color: #888; margin-left:10px;"></small>
+                </div>
+                
+                <!-- ログのタイトルと本文へのリンク -->
+                <a th:href="@{/logs/{id}(id=${log.id})}" style="text-decoration: none; color: inherit;">
+                    <h3 th:text="${log.title}" style="margin: 10px 0 5px 0;">ログのタイトル</h3>
+                    <p th:text="${#strings.abbreviate(log.content, 100)}" style="margin: 0 0 10px 0;">ログの本文の抜粋...</p>
+                </a>
+
+                <!-- 画像一覧 -->
+                <div th:if="${not #lists.isEmpty(log.images)}" style="display: flex; flex-wrap: wrap; gap: 5px;">
+                    <div th:each="image : ${log.images}">
+                        <img th:src="${image.imageUrl}" alt="ログの画像" style="max-width: 80px; max-height: 80px; object-fit: cover; border-radius: 4px;">
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+        <!-- ページネーションUI -->
+        <div th:if="${logPage.totalPages > 1}" style="margin-top: 20px;">
+            <nav>
+                <ul style="display: flex; list-style: none; padding: 0; gap: 10px;">
+                    <!-- 前へ -->
+                    <li th:if="${logPage.hasPrevious()}">
+                        <a th:href="@{/timeline(page=${logPage.number - 1}, size=${logPage.size})}">前へ</a>
+                    </li>
+
+                    <!-- ページ番号 -->
+                    <li th:each="i : ${#numbers.sequence(0, logPage.totalPages - 1)}">
+                        <a th:href="@{/timeline(page=${i}, size=${logPage.size})}"
+                           th:text="${i + 1}"
+                           th:style="${i == logPage.number} ? 'font-weight: bold;'"></a>
+                    </li>
+
+                    <!-- 次へ -->
+                    <li th:if="${logPage.hasNext()}">
+                        <a th:href="@{/timeline(page=${logPage.number + 1}, size=${logPage.size})}">次へ</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+    </div>
+</body>
+</html>
