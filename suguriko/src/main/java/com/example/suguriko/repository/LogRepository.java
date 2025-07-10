@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface LogRepository extends JpaRepository<Log, Long> {
@@ -31,4 +32,13 @@ public interface LogRepository extends JpaRepository<Log, Long> {
      * @return ログのページ
      */
     Page<Log> findByIsPublicOrderByCreatedAtDesc(boolean isPublic, Pageable pageable);
+
+    /**
+     * 公開されており、かつ指定された日時以降に作成されたログを取得する
+     * @param isPublic 公開フラグ (true)
+     * @param sinceDateTime この日時以降の投稿を取得する
+     * @param pageable ページ情報
+     * @return ログのページ
+     */
+    Page<Log> findByIsPublicAndCreatedAtAfterOrderByCreatedAtDesc(boolean isPublic, LocalDateTime sinceDateTime, Pageable pageable);
 }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import java.time.LocalDateTime;
 
 @Controller
 public class TimelineController {
@@ -27,9 +28,13 @@ public class TimelineController {
         // ページネーション情報を設定 (0ページ目から、1ページあたり10件)
         Pageable pageable = PageRequest.of(page, size);
         
-        // 公開ログをページ単位で取得
-        Page<Log> logPage = logRepository.findByIsPublicOrderByCreatedAtDesc(true, pageable);
+        // 取得する期間を定義 (例: 7日前から現在まで)
+        LocalDateTime sinceDateTime = LocalDateTime.now().minusDays(1);
         
+        // 公開ログをページ単位で取得
+        // 新しいメソッドを呼び出して、公開かつ指定期間内のログを取得
+        Page<Log> logPage = logRepository.findByIsPublicAndCreatedAtAfterOrderByCreatedAtDesc(true, sinceDateTime, pageable);
+
         model.addAttribute("logPage", logPage);
         
         return "timeline"; // templates/timeline.html を表示
