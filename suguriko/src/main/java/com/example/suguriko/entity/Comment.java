@@ -1,5 +1,6 @@
 package com.example.suguriko.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -22,12 +23,13 @@ public class Comment {
     // Comment(多) 対 Log(一) の関係
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "log_id", nullable = false)
+    @JsonIgnore
     private Log log;
 
     // Comment(多) 対 User(一) の関係
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private User user; // user情報はJSONに含めたいので、ここには付けない
 
     // データが保存される直前に実行されるメソッド
     @PrePersist

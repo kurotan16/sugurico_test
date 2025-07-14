@@ -1,5 +1,6 @@
 package com.example.suguriko.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ public class User {
 
     // このユーザーが投稿したコメントのリスト
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<Comment> comments = new ArrayList<>();
 
     private String resetPasswordToken;

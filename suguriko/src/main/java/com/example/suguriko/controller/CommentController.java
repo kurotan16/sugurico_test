@@ -6,14 +6,15 @@ import com.example.suguriko.entity.User;
 import com.example.suguriko.repository.CommentRepository;
 import com.example.suguriko.repository.LogRepository;
 import com.example.suguriko.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController 
 public class CommentController {
 
     private final CommentRepository commentRepository;
@@ -26,27 +27,27 @@ public class CommentController {
         this.userRepository = userRepository;
     }
 
-    @PostMapping("/logs/{logId}/comments")
-    public String addComment(@PathVariable Long logId,
-                             @ModelAttribute Comment newComment,
-                             @AuthenticationPrincipal UserDetails userDetails) {
-        
-        // 1. コメント対象のログを取得
-        Log log = logRepository.findById(logId)
-                .orElseThrow(() -> new IllegalArgumentException("無効なログID: " + logId));
+    @PostMapping("/api/logs/{logId}/comments")
+        public ResponseEntity<Comment> addComment(@PathVariable Long logId,
+                                                @ModelAttribute Comment newComment,
+                                                @AuthenticationPrincipal UserDetails userDetails) {
+            
+            // 1. コメント対象のログを取得
+            Log log = logRepository.findById(logId)
+                    .orElseThrow(() -> new IllegalArgumentException("無効なログID: " + logId));
 
-        // 2. コメントしたユーザーを取得
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalStateException("ユーザーが見つかりません。"));
+            // 2. コメントしたユーザーを取得
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new IllegalStateException("ユーザーが見つかりません。"));
 
-        // 3. Commentオブジェクトに必要な情報をセット
-        newComment.setLog(log);
-        newComment.setUser(user);
+            // 3. Commentオブジェクトに必要な情報をセット
+            newComment.setLog(log);
+            newComment.setUser(user);
 
-        // 4. コメントをDBに保存
-        commentRepository.save(newComment);
+            // 4. コメントをDBに保存
+            Comment savedComment = commentRepository.save(newComment);
 
-        // 5. 元のログ詳細ページにリダイレクト
-        return "redirect:/logs/" + logId;
-    }
+            // 5. 保存したCommentオブジェクトをJSONとして返す (ステータスコード 200 OK)
+            return ResponseEntity.ok(savedComment);
+        }
 }

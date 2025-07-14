@@ -26,7 +26,7 @@
 
     <!-- コメント投稿フォーム -->
     <h2>コメントを投稿する</h2>
-    <form th:action="@{/logs/{logId}/comments(logId=${log.id})}" th:object="${newComment}" method="post">
+    <form th:action="@{/api/logs/{logId}/comments(logId=${log.id})}" id="comment-form" th:object="${newComment}" method="post">
         <div>
             <textarea th:field="*{content}" rows="3" cols="50" placeholder="コメントを入力..." required></textarea>
         </div>
@@ -37,10 +37,10 @@
 
     <!-- コメント一覧表示エリア -->
     <h2>コメント一覧</h2>
-    <div th:if="${#lists.isEmpty(log.comments)}">
+    <div th:if="${#lists.isEmpty(log.comments)}" id="no-comment-message">
         <p>まだコメントはありません。</p>
     </div>
-    <ul th:unless="${#lists.isEmpty(log.comments)}">
+    <ul th:unless="${#lists.isEmpty(log.comments)}" id="comment-list">
         <li th:each="comment : ${log.comments}" style="margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
             <strong><span th:text="${comment.user.username}"></span></strong>
             <small th:text="${#temporals.format(comment.createdAt, 'yyyy/MM/dd HH:mm')}" style="margin-left: 10px; color: #888;"></small>
@@ -50,6 +50,80 @@
 
     <hr>
     <a th:href="@{/}">トップページに戻る</a>
+
+    <script th:inline="javascript">
+        // コメント投稿フォームの要素を取得
+        const commentForm = document.getElementById('comment-form')
+
+        // フォームが送信された時の処理を乗っ取る
+        commentForm.addEventListener('submit', function(event) {
+            // 1. 本来のフォーム送信（ページリロード）をキャンセル
+            event.preventDefault();
+
+            // 2. フォームのデータを準備
+            const formData = new FormData(commentForm);
+            const actionUrl = commentForm.action; // フォームのaction属性からURLを取得
+            
+            // 3. Fetch APIを使ってサーバーに非同期でデータを送信
+            fetch(actionUrl, {
+                method: 'POST',
+                body: formData,
+                // CSRFトークンをヘッダーに含める (Spring Securityに必須)
+                headers: {
+                    'X-CSRF-TOKEN': /*[[${_csrf.token}]]*/ 'dummy'
+                }
+            })
+            .then(response => {
+                // レスポンスが正常でなければエラーを投げる
+                if (!response.ok) {
+                    throw new Error('サーバーとの通信に失敗しました。');
+                }
+                // レスポンスをJSONとして解析
+                return response.json();
+            })
+            .then(newComment => {
+                // 4. 成功した場合の処理
+                console.log('成功:', newComment);
+                // コメント一覧に新しいコメントを追加する
+                addCommentToDOM(newComment);
+                // フォームをリセットする
+                commentForm.reset();
+            })
+            .catch(error => {
+                // 5. 失敗した場合の処理
+                console.error('エラー:', error);
+                alert('コメントの投稿に失敗しました。');
+            });
+        });
+
+        // 受け取ったコメントデータを元に、画面に新しいコメント要素を追加する関数
+        function addCommentToDOM(comment) {
+            const commentList = document.getElementById('comment-list');
+            const noCommentMessage = document.getElementById('no-comment-message');
+
+            // 「まだコメントはありません」のメッセージを非表示にする
+            if (noCommentMessage) {
+                noCommentMessage.style.display = 'none';
+            }
+            
+            // 新しいコメントのHTML要素を作成
+            const newListItem = document.createElement('li');
+            newListItem.style.marginBottom = '15px';
+            newListItem.style.borderBottom = '1p solid #ccc';
+            newListItem.style.paddingBottom = '10px';
+
+            const formattedDate = new Date(comment.createdAt).toLocaleString('ja-JP');
+
+            newListItem.innerHTML = `
+                <strong><span>${comment.user.username}</span></strong>
+                <small style="margin-left: 10px; color: #888;">${formattedDate}</small>
+                <p style="margin-top: 5px;">${comment.content}</p>
+            `;
+            
+            // コメント一覧の先頭に追加
+            commentList.prepend(newListItem);
+        }
+    </script>
 
 </body>
 </html>
