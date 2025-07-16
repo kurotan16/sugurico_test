@@ -29,7 +29,7 @@ public class TimelineController {
         Pageable pageable = PageRequest.of(page, size);
         
         // 取得する期間を定義 (例: 7日前から現在まで)
-        LocalDateTime sinceDateTime = LocalDateTime.now().minusDays(1);
+        LocalDateTime sinceDateTime = LocalDateTime.now().minusDays(7);
         
         // 公開ログをページ単位で取得
         // 新しいメソッドを呼び出して、公開かつ指定期間内のログを取得
