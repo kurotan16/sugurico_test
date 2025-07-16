@@ -52,8 +52,8 @@
         <ul th:each="log : ${logs}">
             <li>
                 <a th:href="@{/logs/{id}(id=${log.id})}">
-                <strong th:text="${#temporals.format(log.createdAt, 'yyyy/MM/dd HH:mm')}"></strong> - 
-                <strong th:text="${log.title}">タイトル</strong>
+                    <strong th:text="${#temporals.format(log.createdAt, 'yyyy/MM/dd HH:mm')}"></strong> - 
+                    <strong th:text="${log.title}">タイトル</strong>
                 </a>
                 <a th:href="@{/logs/{id}/edit(id=${log.id})}" style="margin-left: 10px;">編集</a>
         
