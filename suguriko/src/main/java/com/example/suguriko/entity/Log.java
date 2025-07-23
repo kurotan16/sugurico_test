@@ -2,13 +2,17 @@ package com.example.suguriko.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 @Data
 @Entity
 @Table(name = "logs") // DBに"logs"テーブルが作られる
+@EqualsAndHashCode(exclude = "tags")
 public class Log {
 
     @Id
@@ -39,6 +43,14 @@ public class Log {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false) // user_idカラムでUserテーブルと連携
     private User user;
+
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(
+        name = "log_tags", // 中間テーブルの名前
+        joinColumns = @JoinColumn(name = "log_id"), // logsテーブルへの外部キー
+        inverseJoinColumns = @JoinColumn(name = "tag_id") // tagsテーブルへの外部キー
+    )
+    private Set<Tag> tags = new HashSet<>();
 
     // データが保存される直前に実行されるメソッド
     @PrePersist

@@ -1,8 +1,10 @@
 package com.example.suguriko.controller;
 
 import com.example.suguriko.service.StorageService;
+import com.example.suguriko.service.TagService;
 import com.example.suguriko.entity.LogImage;
 import com.example.suguriko.entity.Comment;
+import com.example.suguriko.entity.Tag;
 import com.example.suguriko.entity.Log;
 import com.example.suguriko.entity.User;
 import com.example.suguriko.repository.LogImageRepository;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Controller
 public class HomeController {
@@ -28,12 +31,16 @@ public class HomeController {
     private final LogRepository logRepository;
     private final StorageService storageService;
     private final LogImageRepository logImageRepository;
+    private final TagService tagService;
 
-    public HomeController(UserRepository userRepository, LogRepository logRepository, StorageService storageService, LogImageRepository logImageRepository) {
+    public HomeController(UserRepository userRepository, LogRepository logRepository, 
+                        StorageService storageService, LogImageRepository logImageRepository,
+                        TagService tagService) {
         this.userRepository = userRepository;
         this.logRepository = logRepository;
         this.storageService = storageService;
         this.logImageRepository = logImageRepository;
+        this.tagService = tagService;
     }
 
     @GetMapping("/")
@@ -52,22 +59,24 @@ public class HomeController {
     @PostMapping("/logs")
     public String addLog(@ModelAttribute Log newLog,
                          @RequestParam("imageFiles") MultipartFile[] imageFiles, // 配列で受け取る
+                         @RequestParam("tagInput") String tagInput, // タグ入力文字列を受け取る
                          @AuthenticationPrincipal UserDetails userDetails) {
         
-        // 1. 複数の画像ファイルを一括でアップロードし、URLのリストを取得
+        // 1. 画像ファイルをアップロード
         List<String> imageUrls = storageService.uploadFiles(imageFiles, "logs-images");
-
-        // 2. 取得した各URLからLogImageオブジェクトを作成し、newLogに追加
         for (String imageUrl : imageUrls) {
-            LogImage logImage = new LogImage(imageUrl);
-            newLog.addImage(logImage); // ヘルパーメソッドを使って追加
+            newLog.addImage(new LogImage(imageUrl));
         }
 
-        // 3. ログイン中のユーザー情報を取得し、newLogにセット
+        // 2. タグを処理 (find or create)
+        Set<Tag> tags = tagService.findOrCreateTags(tagInput);
+        newLog.setTags(tags);
+
+        // 3. ユーザー情報をセット
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         newLog.setUser(user);
         
-        // 4. ログをDBに保存（Cascade設定により、関連するLogImageも自動で保存される）
+        // 4. ログをDBに保存 (関連する画像とタグも保存される)
         logRepository.save(newLog);
 
         return "redirect:/"; // トップページにリダイレクト
