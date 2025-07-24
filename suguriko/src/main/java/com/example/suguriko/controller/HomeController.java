@@ -10,6 +10,8 @@ import com.example.suguriko.entity.User;
 import com.example.suguriko.repository.LogImageRepository;
 import com.example.suguriko.repository.LogRepository;
 import com.example.suguriko.repository.UserRepository;
+
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -49,7 +51,7 @@ public class HomeController {
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         
         // そのユーザーのログ一覧を取得
-        List<Log> logs = logRepository.findFirst3ByUserOrderByCreatedAtDesc(user);
+        List<Log> logs = logRepository.findFirst3ByUserOrderByCreatedAtDescWithDetails(user, PageRequest.of(0, 3));
 
         model.addAttribute("logs", logs);
         model.addAttribute("newLog", new Log()); // フォーム用の空のLogオブジェクト
@@ -85,7 +87,7 @@ public class HomeController {
     @GetMapping("/logs/{id}")
     public String showLogDetail(@PathVariable Long id, Model model) {
         // IDを使ってLogをデータベースから取得する
-        Optional<Log> logOptional = logRepository.findById(id);
+        Optional<Log> logOptional = logRepository.findByIdWithDetails(id);
 
         if (logOptional.isPresent()) {
             // Logが見つかった場合、モデルに渡して詳細ページを表示
@@ -105,7 +107,7 @@ public class HomeController {
         User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         
         // 削除対象のログをIDで検索
-        Optional<Log> logOptional = logRepository.findById(id);
+        Optional<Log> logOptional = logRepository.findByIdWithDetails(id);
 
         // ログが存在し、かつそのログの所有者が現在のユーザーである場合のみ削除
         if (logOptional.isPresent()) {
@@ -131,7 +133,7 @@ public class HomeController {
         // ログインユーザー情報を取得
         User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         // 編集対象のログを取得
-        Optional<Log> logOptional = logRepository.findById(id);
+        Optional<Log> logOptional = logRepository.findByIdWithDetails(id);
 
         // ログが存在し、かつ自分が所有者であるかチェック
         if (logOptional.isPresent() && logOptional.get().getUser().getId().equals(currentUser.getId())) {
@@ -158,7 +160,7 @@ public class HomeController {
         // ログインユーザー情報を取得
         User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         // 更新対象のログをDBから取得
-        Optional<Log> logOptional = logRepository.findById(id);
+        Optional<Log> logOptional = logRepository.findByIdWithDetails(id);
 
         // ログが存在し、かつ自分が所有者であるかチェック
         if (logOptional.isPresent() && logOptional.get().getUser().getId().equals(currentUser.getId())) {

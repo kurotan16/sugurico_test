@@ -44,7 +44,7 @@ public class Log {
     @JoinColumn(name = "user_id", nullable = false) // user_idカラムでUserテーブルと連携
     private User user;
 
-    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.LAZY)
     @JoinTable(
         name = "log_tags", // 中間テーブルの名前
         joinColumns = @JoinColumn(name = "log_id"), // logsテーブルへの外部キー

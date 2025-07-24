@@ -33,7 +33,8 @@ public class TimelineController {
         
         // 公開ログをページ単位で取得
         // 新しいメソッドを呼び出して、公開かつ指定期間内のログを取得
-        Page<Log> logPage = logRepository.findByIsPublicAndCreatedAtAfterOrderByCreatedAtDesc(true, sinceDateTime, pageable);
+        // タイプミスを修正し、メソッド名を変更
+        Page<Log> logPage = logRepository.findByIsPublicAndCreatedAtAfterOrderByCreatedAtDescWithDetails(sinceDateTime, pageable);
 
         model.addAttribute("logPage", logPage);
         

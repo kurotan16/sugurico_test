@@ -2,43 +2,34 @@ package com.example.suguriko.repository;
 
 import com.example.suguriko.entity.Log;
 import com.example.suguriko.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Page;
+
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface LogRepository extends JpaRepository<Log, Long> {
-    // 特定のユーザーのログを、作成日時の新しい順に取得する
-    List<Log> findByUserOrderByCreatedAtDesc(User user);
 
-    // 特定のユーザーのログを、作成日時の新しい順に、上位N件だけ取得する
-    List<Log> findFirst3ByUserOrderByCreatedAtDesc(User user);
+    @Query("SELECT DISTINCT l FROM Log l LEFT JOIN FETCH l.tags LEFT JOIN FETCH l.images WHERE l.id = :id")
+    Optional<Log> findByIdWithDetails(@Param("id") Long id);
 
-    @Query("SELECT l FROM Log l WHERE l.user = :user AND " +
-           "(l.title LIKE %:keyword% OR l.content LIKE %:keyword%) " +
+    @Query("SELECT DISTINCT l FROM Log l LEFT JOIN FETCH l.tags LEFT JOIN FETCH l.images WHERE l.user = :user ORDER BY l.createdAt DESC")
+    List<Log> findByUserOrderByCreatedAtDescWithDetails(@Param("user") User user);
+    
+    @Query(value = "SELECT DISTINCT l FROM Log l LEFT JOIN FETCH l.tags LEFT JOIN FETCH l.images WHERE l.user = :user ORDER BY l.createdAt DESC",
+           countQuery = "SELECT count(l) FROM Log l WHERE l.user = :user")
+    List<Log> findFirst3ByUserOrderByCreatedAtDescWithDetails(@Param("user") User user, Pageable pageable);
+
+    @Query("SELECT DISTINCT l FROM Log l LEFT JOIN FETCH l.tags LEFT JOIN FETCH l.images WHERE l.user = :user AND " +
+           "(l.title LIKE %:keyword% OR l.content LIKE %:keyword% OR EXISTS (SELECT t FROM l.tags t WHERE t.name LIKE %:keyword%)) " +
            "ORDER BY l.createdAt DESC")
-    List<Log> findByUserAndKeyword(
-        @Param("user") User user,
-        @Param("keyword") String keyword
-    );
+    List<Log> findByUserAndKeywordWithDetails(@Param("user") User user, @Param("keyword") String keyword);
 
-    /**
-     * 公開されているすべてのログを作成日時の新しい順に取得する（ページネーション対応）
-     * @param isPublic 公開フラグ (trueを指定する)
-     * @param pageable ページ情報
-     * @return ログのページ
-     */
-    Page<Log> findByIsPublicOrderByCreatedAtDesc(boolean isPublic, Pageable pageable);
-
-    /**
-     * 公開されており、かつ指定された日時以降に作成されたログを取得する
-     * @param isPublic 公開フラグ (true)
-     * @param sinceDateTime この日時以降の投稿を取得する
-     * @param pageable ページ情報
-     * @return ログのページ
-     */
-    Page<Log> findByIsPublicAndCreatedAtAfterOrderByCreatedAtDesc(boolean isPublic, LocalDateTime sinceDateTime, Pageable pageable);
+    @Query(value = "SELECT DISTINCT l FROM Log l LEFT JOIN FETCH l.tags LEFT JOIN FETCH l.images WHERE l.isPublic = true AND l.createdAt > :sinceDateTime ORDER BY l.createdAt DESC",
+           countQuery = "SELECT count(l) FROM Log l WHERE l.isPublic = true AND l.createdAt > :sinceDateTime")
+    Page<Log> findByIsPublicAndCreatedAtAfterOrderByCreatedAtDescWithDetails(@Param("sinceDateTime") LocalDateTime sinceDateTime, Pageable pageable);
 }

@@ -22,6 +22,14 @@
     <!-- 本文 (CSSで改行を維持して表示) -->
     <p th:text="${log.content}" style="white-space: pre-wrap;">ログの本文</p>
 
+    <div th:if="${not #sets.isEmpty(log.tags)}" style="margin-top: 15px;">
+        <strong>タグ:</strong>
+        <span th:each="tag : ${log.tags}" style="margin-right: 8px; background-color: #eee; padding: 2px 8px; border-radius: 4px;">
+            <!-- TODO: あとで検索リンクにする -->
+            <span th:text="${tag.name}"></span>
+        </span>
+    </div>
+
     <hr>
 
     <!-- コメント投稿フォーム -->

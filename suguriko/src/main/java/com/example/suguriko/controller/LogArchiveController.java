@@ -37,12 +37,10 @@ public class LogArchiveController {
 
         // keywordパラメータの有無で処理を分岐
         if (keyword != null && !keyword.isBlank()) {
-            // キーワードがある場合：検索メソッドを呼び出す
-            logs = logRepository.findByUserAndKeyword(user, keyword);
-            model.addAttribute("keyword", keyword); // 検索窓にキーワードを保持するため
+            logs = logRepository.findByUserAndKeywordWithDetails(user, keyword);
+            // ...
         } else {
-            // キーワードがない場合：すべてのログを取得する
-            logs = logRepository.findByUserOrderByCreatedAtDesc(user);
+            logs = logRepository.findByUserOrderByCreatedAtDescWithDetails(user);
         }
 
         model.addAttribute("logs", logs);
