@@ -52,10 +52,12 @@
                 <!-- 本文表示 -->
                 <span th:text="${log.content}" style="padding-left: 15px; display: block; margin-top: 5px;">本文</span>
 
+                <!-- タグ表示エリア -->
                 <div th:if="${not #sets.isEmpty(log.tags)}" style="margin-top: 10px; padding-left: 15px;">
-                    <span th:each="tag : ${log.tags}" style="margin-right: 5px; background-color: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 0.9em;">
+                    <a th:each="tag : ${log.tags}" th:href="@{/logs/archive(keyword=${tag.name})}"
+                    style="margin-right: 5px; background-color: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; text-decoration: none; color: inherit;">
                         <span th:text="${tag.name}"></span>
-                    </span>
+                    </a>
                 </div>
             </li>
         </ul>
