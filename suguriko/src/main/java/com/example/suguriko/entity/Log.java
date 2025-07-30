@@ -5,9 +5,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 
 @Data
 @Entity
@@ -29,8 +29,8 @@ public class Log {
     private boolean isPublic = false; // デフォルトは非公開
 
     // 1つのLogは複数のLogImageを持つことができる (一対多)
-    @OneToMany(mappedBy = "log", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<LogImage> images = new ArrayList<>();
+    @OneToMany(mappedBy = "log", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<LogImage> images;
 
     // 1つのLogは複数のCommentを持つことができる (一対多)
     @OneToMany(mappedBy = "log", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -50,7 +50,12 @@ public class Log {
         joinColumns = @JoinColumn(name = "log_id"), // logsテーブルへの外部キー
         inverseJoinColumns = @JoinColumn(name = "tag_id") // tagsテーブルへの外部キー
     )
-    private Set<Tag> tags = new HashSet<>();
+    private Set<Tag> tags;
+    public Log() {
+        this.images = new ArrayList<>();
+        this.comments = new ArrayList<>(); // commentsも初期化しておくと安全
+        this.tags = new HashSet<>();
+    }
 
     // データが保存される直前に実行されるメソッド
     @PrePersist

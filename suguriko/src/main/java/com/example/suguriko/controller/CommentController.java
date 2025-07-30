@@ -28,26 +28,26 @@ public class CommentController {
     }
 
     @PostMapping("/api/logs/{logId}/comments")
-        public ResponseEntity<Comment> addComment(@PathVariable Long logId,
-                                                @ModelAttribute Comment newComment,
-                                                @AuthenticationPrincipal UserDetails userDetails) {
-            
-            // 1. コメント対象のログを取得
-            Log log = logRepository.findById(logId)
-                    .orElseThrow(() -> new IllegalArgumentException("無効なログID: " + logId));
+    public ResponseEntity<Comment> addComment(@PathVariable Long logId,
+                                            @ModelAttribute Comment newComment,
+                                            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        // 1. コメント対象のログを取得
+        Log log = logRepository.findByIdWithDetails(logId)
+                .orElseThrow(() -> new IllegalArgumentException("無効なログID: " + logId));
 
-            // 2. コメントしたユーザーを取得
-            User user = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new IllegalStateException("ユーザーが見つかりません。"));
+        // 2. コメントしたユーザーを取得
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalStateException("ユーザーが見つかりません。"));
 
-            // 3. Commentオブジェクトに必要な情報をセット
-            newComment.setLog(log);
-            newComment.setUser(user);
+        // 3. Commentオブジェクトに必要な情報をセット
+        newComment.setLog(log);
+        newComment.setUser(user);
 
-            // 4. コメントをDBに保存
-            Comment savedComment = commentRepository.save(newComment);
+        // 4. コメントをDBに保存
+        Comment savedComment = commentRepository.save(newComment);
 
-            // 5. 保存したCommentオブジェクトをJSONとして返す (ステータスコード 200 OK)
-            return ResponseEntity.ok(savedComment);
-        }
+        // 5. 保存したCommentオブジェクトをJSONとして返す (ステータスコード 200 OK)
+        return ResponseEntity.ok(savedComment);
+    }
 }

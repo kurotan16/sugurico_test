@@ -22,9 +22,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 @Controller
 public class HomeController {
@@ -50,11 +54,32 @@ public class HomeController {
         // ログイン中のユーザー情報を取得
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         
-        // そのユーザーのログ一覧を取得
-        List<Log> logs = logRepository.findFirst3ByUserOrderByCreatedAtDescWithDetails(user, PageRequest.of(0, 3));
+        //  1. まず最新のログIDを3件だけ取得
+        List<Long> latestLogIds = logRepository.findLatest3LogIdsByUser(user, PageRequest.of(0, 3));
+
+        List<Log> logs;
+        if (latestLogIds.isEmpty()) {
+            logs = new ArrayList<>();
+        } else {
+            // ★★★ ここからが修正箇所 ★★★
+            // 2. IDリストを元に、まずLogとTagを取得
+            List<Log> logsWithTags = logRepository.findByIdInWithTags(latestLogIds);
+            
+            // 3. 次に、同じLogのリストに対してImageをフェッチ
+            // (JPAが同じトランザクション内でキャッシュを賢く使うため、これでOK)
+            List<Log> logsWithDetails = logRepository.findByIdInWithImages(
+                logsWithTags.stream().map(Log::getId).collect(Collectors.toList())
+            );
+
+            // 4. createdAtで降順に手動でソート
+            logs = logsWithDetails.stream()
+                        .sorted(Comparator.comparing(Log::getCreatedAt).reversed())
+                        .collect(Collectors.toList());
+            // ★★★ ここまで ★★★
+        }
 
         model.addAttribute("logs", logs);
-        model.addAttribute("newLog", new Log()); // フォーム用の空のLogオブジェクト
+        model.addAttribute("newLog", new Log());
         return "index";
     }
 
