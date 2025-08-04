@@ -11,7 +11,9 @@ import com.example.suguriko.repository.LogImageRepository;
 import com.example.suguriko.repository.LogRepository;
 import com.example.suguriko.repository.UserRepository;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -51,35 +53,40 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        // ログイン中のユーザー情報を取得
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         
-        //  1. まず最新のログIDを3件だけ取得
-        List<Long> latestLogIds = logRepository.findLatest3LogIdsByUser(user, PageRequest.of(0, 3));
-
-        List<Log> logs;
-        if (latestLogIds.isEmpty()) {
-            logs = new ArrayList<>();
+        // --- 1. 自分の最新ログ3件を取得 ---
+        List<Long> myLogIds = logRepository.findLatest3LogIdsByUser(user, PageRequest.of(0, 3));
+        List<Log> myLogs;
+        if (myLogIds.isEmpty()) {
+            myLogs = new ArrayList<>();
         } else {
-            // ★★★ ここからが修正箇所 ★★★
-            // 2. IDリストを元に、まずLogとTagを取得
-            List<Log> logsWithTags = logRepository.findByIdInWithTags(latestLogIds);
-            
-            // 3. 次に、同じLogのリストに対してImageをフェッチ
-            // (JPAが同じトランザクション内でキャッシュを賢く使うため、これでOK)
-            List<Log> logsWithDetails = logRepository.findByIdInWithImages(
-                logsWithTags.stream().map(Log::getId).collect(Collectors.toList())
-            );
-
-            // 4. createdAtで降順に手動でソート
-            logs = logsWithDetails.stream()
+            List<Log> logsWithTags = logRepository.findByIdInWithTags(myLogIds);
+            List<Log> logsWithDetails = logRepository.findByIdInWithImages(myLogIds);
+            myLogs = logsWithDetails.stream()
                         .sorted(Comparator.comparing(Log::getCreatedAt).reversed())
                         .collect(Collectors.toList());
-            // ★★★ ここまで ★★★
         }
-
-        model.addAttribute("logs", logs);
+        
+        // --- 2. みんなの最新公開ログ3件を取得 ---
+        List<Long> publicLogIds = logRepository.findLatest3PublicLogIds(PageRequest.of(0, 3));
+        List<Log> publicLogs;
+        if (publicLogIds.isEmpty()) {
+            publicLogs = new ArrayList<>();
+        } else {
+            List<Log> logsWithTags = logRepository.findByIdInWithTags(publicLogIds);
+            List<Log> logsWithDetails = logRepository.findByIdInWithImages(publicLogIds);
+            publicLogs = logsWithDetails.stream()
+                        .sorted(Comparator.comparing(Log::getCreatedAt).reversed())
+                        .collect(Collectors.toList());
+        }
+        // ★★★ ここまで ★★★
+        
+        // --- 3. 取得したデータをモデルに詰める ---
+        model.addAttribute("myLogs", myLogs);
+        model.addAttribute("publicLogs", publicLogs); // .getContent()は不要
         model.addAttribute("newLog", new Log());
+        
         return "index";
     }
 

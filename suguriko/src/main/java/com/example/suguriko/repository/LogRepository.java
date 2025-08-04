@@ -54,6 +54,14 @@ public interface LogRepository extends JpaRepository<Log, Long> {
            countQuery = "SELECT count(l) FROM Log l WHERE l.isPublic = true AND l.createdAt > :sinceDateTime")
     Page<Log> findByIsPublicAndCreatedAtAfterOrderByCreatedAtDescWithDetails(@Param("sinceDateTime") LocalDateTime sinceDateTime, Pageable pageable);
 
+    // 全期間の公開ログから最新のものを取得
+    @Query(value = "SELECT DISTINCT l FROM Log l LEFT JOIN FETCH l.tags LEFT JOIN FETCH l.images WHERE l.isPublic = true ORDER BY l.createdAt DESC",
+           countQuery = "SELECT count(l) FROM Log l WHERE l.isPublic = true")
+    Page<Log> findByIsPublicOrderByCreatedAtDescWithDetails(Pageable pageable);
+
+    @Query("SELECT l.id FROM Log l WHERE l.isPublic = true ORDER BY l.createdAt DESC")
+    List<Long> findLatest3PublicLogIds(Pageable pageable);
+    
     // ここからアーカイブページ用のID取得メソッドを3つ追加 
     // ユーザーのすべてのログIDを取得する
     @Query("SELECT l.id FROM Log l WHERE l.user = :user ORDER BY l.createdAt DESC")

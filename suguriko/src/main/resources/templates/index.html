@@ -73,13 +73,13 @@
 
     <div style="display: flex; align-items: center; gap: 20px;">
         <h2>あなたの最新ログ (3件)</h2>
-        <a th:href="@{/logs/archive}">すべてのログを見る</a>
+        <a th:href="@{/logs/archive}">すべてのあなたのログを見る</a>
     </div>
-    <div th:if="${#lists.isEmpty(logs)}">
+    <div th:if="${#lists.isEmpty(myLogs)}">
         <p>まだ記録がありません。</p>
     </div>
-    <div th:unless="${#lists.isEmpty(logs)}">
-        <ul th:each="log : ${logs}">
+    <div th:unless="${#lists.isEmpty(myLogs)}">
+        <ul th:each="log : ${myLogs}">
             <li>
                 <a th:href="@{/logs/{id}(id=${log.id})}">
                     <strong th:text="${#temporals.format(log.createdAt, 'yyyy/MM/dd HH:mm')}"></strong> - 
@@ -102,6 +102,51 @@
                     </div>
                 </div>
                 <span th:text="${log.content}" style="padding-left: 15px;">本文</span>
+            </li>
+        </ul>
+    </div>
+
+     <hr style="margin: 30px 0;">
+
+    <!-- みんなの最新ログ -->
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <h2>みんなの最新ログ</h2>
+        <a th:href="@{/timeline}">タイムラインをもっと見る</a>
+    </div>
+    <div th:if="${#lists.isEmpty(publicLogs)}">
+        <p>まだ公開されたログはありません。</p>
+    </div>
+    <div th:unless="${#lists.isEmpty(publicLogs)}">
+        <ul th:each="log : ${publicLogs}">
+             <!-- ログ表示のブロック (内容は同じだが、編集・削除ボタンがない) -->
+            <li style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+                <!-- 投稿者と日時の情報 -->
+                <div>
+                    <strong>投稿者: <span th:text="${log.user.username}"></span></strong>
+                    <small th:text="${#temporals.format(log.createdAt, 'yyyy/MM/dd HH:mm')}" style="color: #888; margin-left:10px;"></small>
+                </div>
+                
+                <a th:href="@{/logs/{id}(id=${log.id})}" style="text-decoration: none; color: inherit;">
+                    <h3 th:text="${log.title}" style="margin: 10px 0 5px 0;"></h3>
+                    <p th:text="${#strings.abbreviate(log.content, 100)}" style="margin: 0 0 10px 0;"></p>
+                </a>
+
+                <!-- 画像一覧 -->
+                <div th:if="${not #lists.isEmpty(log.images)}" style="padding-left: 15px; margin-top: 5px;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <div th:each="image : ${log.images}">
+                            <img th:src="${image.imageUrl}" alt="ログの画像" style="max-width: 150px; max-height: 150px; object-fit: cover;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- タグ表示エリア -->
+                <div th:if="${not #sets.isEmpty(log.tags)}" style="margin-top: 10px; padding-left: 15px;">
+                    <a th:each="tag : ${log.tags}" th:href="@{/logs/archive(keyword=${tag.name})}"
+                       style="margin-right: 5px; background-color: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; text-decoration: none; color: inherit;">
+                        <span th:text="${tag.name}"></span>
+                    </a>
+                </div>
             </li>
         </ul>
     </div>
