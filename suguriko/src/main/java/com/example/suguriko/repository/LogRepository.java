@@ -14,16 +14,30 @@ import java.util.Optional;
 
 public interface LogRepository extends JpaRepository<Log, Long> {
 
+    // ユーザーID一致するID
     @Query("SELECT DISTINCT l FROM Log l LEFT JOIN FETCH l.tags LEFT JOIN FETCH l.images WHERE l.id = :id")
     Optional<Log> findByIdWithDetails(@Param("id") Long id);
 
     @Query("SELECT DISTINCT l FROM Log l LEFT JOIN FETCH l.tags LEFT JOIN FETCH l.images WHERE l.user = :user ORDER BY l.createdAt DESC")
     List<Log> findByUserOrderByCreatedAtDescWithDetails(@Param("user") User user);
 
+    // すべてを検索するメソッド
     @Query("SELECT DISTINCT l FROM Log l LEFT JOIN FETCH l.tags LEFT JOIN FETCH l.images WHERE l.user = :user AND " +
            "(l.title LIKE %:keyword% OR l.content LIKE %:keyword% OR EXISTS (SELECT t FROM l.tags t WHERE t.name LIKE %:keyword%)) " +
            "ORDER BY l.createdAt DESC")
     List<Log> findByUserAndKeywordWithDetails(@Param("user") User user, @Param("keyword") String keyword);
+
+    // 「本文とタイトルのみ」を検索するメソッド
+    @Query("SELECT DISTINCT l FROM Log l LEFT JOIN FETCH l.tags LEFT JOIN FETCH l.images WHERE l.user = :user AND " +
+           "(l.title LIKE %:keyword% OR l.content LIKE %:keyword%) " +
+           "ORDER BY l.createdAt DESC")
+    List<Log> findByUserAndTextKeywordWithDetails(@Param("user") User user, @Param("keyword") String keyword);
+
+    // 「タグのみ」を検索するメソッド
+    @Query("SELECT DISTINCT l FROM Log l LEFT JOIN FETCH l.tags LEFT JOIN FETCH l.images WHERE l.user = :user AND " +
+           "EXISTS (SELECT t FROM l.tags t WHERE t.name LIKE %:keyword%) " +
+           "ORDER BY l.createdAt DESC")
+    List<Log> findByUserAndTagKeywordWithDetails(@Param("user") User user, @Param("keyword") String keyword);
 
     // トップページ表示用の、最新3件のログIDを取得する
     @Query("SELECT l.id FROM Log l WHERE l.user = :user ORDER BY l.createdAt DESC")

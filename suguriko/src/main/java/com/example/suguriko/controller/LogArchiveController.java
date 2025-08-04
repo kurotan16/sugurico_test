@@ -29,21 +29,35 @@ public class LogArchiveController {
     @GetMapping
     public String showArchive(
         @RequestParam(name = "keyword", required = false) String keyword,
+        @RequestParam(name = "searchType", defaultValue = "all") String searchType, // ULRパラメータを受け取る(指定無しならAll)
         @AuthenticationPrincipal UserDetails userDetails,
         Model model) {
 
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         List<Log> logs;
 
-        // keywordパラメータの有無で処理を分岐
-        if (keyword != null && !keyword.isBlank()) {
-            logs = logRepository.findByUserAndKeywordWithDetails(user, keyword);
-            // ...
-        } else {
+        // keywordが空の場合は、検索せずに空の結果を返す
+        if (keyword == null || keyword.isBlank()) {
             logs = logRepository.findByUserOrderByCreatedAtDescWithDetails(user);
+        } else {
+            // ラジオボタンに応じて変化
+            switch (searchType) {
+                case "text":
+                    logs = logRepository.findByUserAndTextKeywordWithDetails(user, keyword);
+                    break;
+                case "tag":
+                    logs = logRepository.findByUserAndTagKeywordWithDetails(user, keyword);
+                    break;
+                case "all":
+                default:
+                    logs = logRepository.findByUserAndKeywordWithDetails(user, keyword);
+                    break;
+            }
         }
 
         model.addAttribute("logs", logs);
-        return "logs-archive"; // templates/logs-archive.html を表示
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("searchType", searchType); // 選択されたタイプをビューに返す
+        return "logs-archive";
     }
 }

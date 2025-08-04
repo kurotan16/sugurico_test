@@ -8,11 +8,31 @@
     <h1>過去のログ一覧</h1>
 
     <!-- ★★★ 検索フォーム ★★★ -->
-    <div style="margin-bottom: 20px;">
+    <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 5px;">
         <form th:action="@{/logs/archive}" method="get">
-            <input type="text" name="keyword" size="40" th:value="${keyword}" placeholder="キーワードで検索...">
-            <button type="submit">検索</button>
-            <a th:href="@{/logs/archive}" style="margin-left: 10px;">リセット</a>
+            <!-- キーワード入力 -->
+            <div>
+                <input type="text" name="keyword" size="40" th:value="${keyword}" placeholder="キーワードを入力...">
+            </div>
+            
+            <!-- 検索タイプ選択 -->
+            <div style="margin-top: 10px;">
+                <strong>検索対象:</strong>
+                <input type="radio" id="search-all" name="searchType" value="all" th:checked="${searchType == 'all' or searchType == null}">
+                <label for="search-all">すべて</label>
+                
+                <input type="radio" id="search-text" name="searchType" value="text" th:checked="${searchType == 'text'}">
+                <label for="search-text">本文とタイトル</label>
+                
+                <input type="radio" id="search-tag" name="searchType" value="tag" th:checked="${searchType == 'tag'}">
+                <label for="search-tag">タグのみ</label>
+            </div>
+
+            <!-- ボタン -->
+            <div style="margin-top: 15px;">
+                <button type="submit">検索</button>
+                <a th:href="@{/logs/archive}" style="margin-left: 10px;">リセット</a>
+            </div>
         </form>
     </div>
 
