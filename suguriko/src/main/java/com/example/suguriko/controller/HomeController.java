@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -69,7 +70,13 @@ public class HomeController {
         }
         
         // --- 2. みんなの最新公開ログ3件を取得 ---
-        List<Long> publicLogIds = logRepository.findLatest3PublicLogIds(PageRequest.of(0, 3));
+        Pageable publicLogPageable = PageRequest.of(0, 3);
+        LocalDateTime sinceDateTime = LocalDateTime.now().minusDays(7); // 7日以内の条件を追加
+
+        // タイムラインと同じ、期間絞り込み付きのメソッドを呼び出す
+        Page<Long> publicLogIdPage = logRepository.findPublicLogIdsAfter(sinceDateTime, publicLogPageable);
+        List<Long> publicLogIds = publicLogIdPage.getContent();
+        
         List<Log> publicLogs;
         if (publicLogIds.isEmpty()) {
             publicLogs = new ArrayList<>();
