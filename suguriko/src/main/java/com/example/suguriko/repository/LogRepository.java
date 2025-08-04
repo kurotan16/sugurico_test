@@ -54,6 +54,7 @@ public interface LogRepository extends JpaRepository<Log, Long> {
            countQuery = "SELECT count(l) FROM Log l WHERE l.isPublic = true AND l.createdAt > :sinceDateTime")
     Page<Log> findByIsPublicAndCreatedAtAfterOrderByCreatedAtDescWithDetails(@Param("sinceDateTime") LocalDateTime sinceDateTime, Pageable pageable);
 
+    // ここからアーカイブページ用のID取得メソッドを3つ追加 
     // ユーザーのすべてのログIDを取得する
     @Query("SELECT l.id FROM Log l WHERE l.user = :user ORDER BY l.createdAt DESC")
     List<Long> findAllLogIdsByUser(@Param("user") User user);
@@ -65,4 +66,8 @@ public interface LogRepository extends JpaRepository<Log, Long> {
     // 「タグのみ」で検索したログIDを取得する
     @Query("SELECT l.id FROM Log l JOIN l.tags t WHERE l.user = :user AND t.name LIKE %:keyword% ORDER BY l.createdAt DESC")
     List<Long> findLogIdsByUserAndTagKeyword(@Param("user") User user, @Param("keyword") String keyword);
+
+    // ここからタイムライン用のID取得メソッドを追加 
+    @Query("SELECT l.id FROM Log l WHERE l.isPublic = true AND l.createdAt > :sinceDateTime ORDER BY l.createdAt DESC")
+    Page<Long> findPublicLogIdsAfter(@Param("sinceDateTime") LocalDateTime sinceDateTime, Pageable pageable);
 }
